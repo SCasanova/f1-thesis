@@ -62,11 +62,11 @@ results_rbo <- function(season, p = 0.9, ...){
     pivot_longer(c(-race1), names_to = "race2", values_to = "rbo")
   
   # Create a unique pair id (alphabeticaly sorted)
-  rbo_long$unique <- apply(rbo_long[, c('race1', 'race2')], 1, 
+  rbo_long$ordered_id <- apply(rbo_long[, c('race1', 'race2')], 1, 
                          function(x) paste(sort(x), collapse=""))
   
   # Eliminate symetric entires
-  rbo_long[!duplicated(rbo_long$unique), 1:3]
+  rbo_long <- rbo_long[!duplicated(rbo_long$ordered_id), ]
   
   # Output matrix form and pairwise form
   list(
@@ -88,8 +88,15 @@ rbo_2023 <- results_rbo(2023)
 
 inner_join(
   rbo_2022$pairwise,
-  rbo_2023$pairwise,
-  by = c('race1', 'race2')
-)
+  rbo_2023$pairwise |> 
+    select(ordered_id, rbo_23 = rbo),
+  by = c('ordered_id')
+) |> 
+  mutate(difference = abs(rbo-rbo_23))
+
+# Maximizar la correlacion año con año???
+
+
+
 
 
