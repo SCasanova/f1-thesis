@@ -6,7 +6,7 @@ library(tidyverse)
 # To extract F1 data
 library(f1dataR)
 # RBO function for comparison
-source('rbo.R')
+source('R/rbo.R')
 
 
 # Result RBO computation -------------------------------------------------------------
@@ -16,6 +16,7 @@ results_rbo <- function(season, p = 0.9, ...){
   
   # Get the names (IDs) for 2022 races
   race_list <- load_schedule(season) |> 
+    filter(date < Sys.Date()) |> 
     select(season, round, circuit_id)
   
   results <- 
@@ -77,24 +78,6 @@ results_rbo <- function(season, p = 0.9, ...){
 }
 
 
-
-
-# Test ---------------------------------------------------------
-
-
-rbo_2022 <- results_rbo(2022)
-
-rbo_2023 <- results_rbo(2023)
-
-inner_join(
-  rbo_2022$pairwise,
-  rbo_2023$pairwise |> 
-    select(ordered_id, rbo_23 = rbo),
-  by = c('ordered_id')
-) |> 
-  mutate(difference = abs(rbo-rbo_23))
-
-# Maximizar la correlacion año con año???
 
 
 
