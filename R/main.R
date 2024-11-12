@@ -127,12 +127,15 @@ ggplot(grid_results, aes(p, cor))+
 # Save
 ggsave(
   'figures/p_max.png',
-  height = 4,
-  width = 4,
+  height = 5.5,
+  width = 6,
   device = 'png',
   dpi = 'retina',
   bg = 'transparent'
 )
+
+
+# Have p follow points structure ------------------------------------------
 
 
 
