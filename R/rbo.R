@@ -9,6 +9,7 @@
 
 
 rbo <- function(x, y, p, k = min(length(x), length(y))) {
+  
   if(p>1 | p<0){
     cli::cli_abort("p must be a value between 0 and 1")
   }
@@ -31,5 +32,29 @@ rbo <- function(x, y, p, k = min(length(x), length(y))) {
   (A_d*p_d*(1-p)) |> 
     sum() +
     length(intersect(x[1:k],y[1:k]))/k * p^k
+  
+}
+
+
+#' Caluclate the weight of evaluation at depth d for parameter d during RBO
+#' 
+#' @param p Parameter p between 0 and 1
+#' @param d Depth of analysis, a natural number
+#' @returns The % of weight accumulated at depth d when applyting RBO(p)
+
+
+rbo_weight <- function(p, d) {
+  
+  if(d<1){
+    cli::cli_abort("d must be a value greater than 0")
+  }
+  else if(d == 1){
+    i=1
+  } else{
+    i = 1:(d-1)
+  }
+  
+  
+  1 - p ^ (d - 1) + (1 - p) / p * d * (log(1 / (1 - p)) -  sum(p^i/i))
   
 }
