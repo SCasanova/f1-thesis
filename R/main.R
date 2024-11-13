@@ -3,7 +3,9 @@
 
 library(patchwork)
 library(latex2exp)
+source('R/rbo.R')
 source('R/finish_relationship.R')
+source('R/grid_seach.R')
 
 
 # Test RBO ----------------------------------------------------------------
@@ -26,59 +28,6 @@ inner_join(
 
 # Create our grid testing values for parameter p
 p_grid <- seq(0.85,0.9999,0.0005)
-
-
-# Function that will perform our grid search
-grid_search_p <- function(p){
-  
-  # Comput RBO for 2022, 2023, and 2024 with parameter p
-  rbo_2022 <- results_rbo(2022, p)
-  
-  rbo_2023 <- results_rbo(2023, p)
-  
-  rbo_2024 <- results_rbo(2024, p)
-  
-  # Add 2022 as base year and 2023 as n+1 year
-  pair_1 <- inner_join(
-    rbo_2022$pairwise,
-    rbo_2023$pairwise |> 
-      select(ordered_id, rbo_n1 = rbo),
-    by = c('ordered_id')
-  ) 
-  
-  # Add 2023 as base year and 2024 as n+1 year
-  pair_2 <- inner_join(
-    rbo_2023$pairwise,
-    rbo_2024$pairwise |> 
-      select(ordered_id, rbo_n1 = rbo),
-    by = c('ordered_id')
-  ) 
-  
-  # Combine results and compute L1 and L2 norms (pre)
-  combined <- bind_rows(
-    pair_1,
-    pair_2
-  ) |> 
-    mutate(
-      diff = rbo-rbo_n1,
-      n1 = abs(diff),
-      n2 = (diff)^2
-    )
-  
-  # Get our test maximizing function outputs
-  results <- tibble(
-    p = p,
-    mae = mean(combined$n1),
-    mse = mean(combined$n2) |> sqrt(),
-    # n_inf = max(combined$diff),
-    cor = cor(combined$rbo, combined$rbo_n1),
-    kendall = cor(combined$rbo, combined$rbo_n1, method = 'kendall'),
-    variance = cov(combined$rbo, combined$rbo_n1)
-  ) 
-  
-  results
-  
-}
 
 # Apply the function on the p values we have selected
 grid_results <- purrr::map_df(p_grid, grid_search_p)
@@ -137,7 +86,16 @@ ggsave(
 
 # Have p follow points structure ------------------------------------------
 
+# Grid seach for best p
 
+points <- tibble::tibble(
+  pos = seq(1, 20, 2),
+  points = c(25,18,15,12,10,8,6,4,2,1)
+) |> 
+  mutate(cummulative = cumsum(points)/sum(points),
+         weight = purrr::map_dbl(pos, function(x)rbo_weight(0.923, x)))
 
-
+ggplot(points, aes(pos, cummulative))+
+  geom_line()+
+  geom_line(aes(y = weight))
 
