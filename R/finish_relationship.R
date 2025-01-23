@@ -27,8 +27,7 @@ results_rbo <- function(season, p = 0.9, ...){
       function(i) {
         # Get race results
         load_results(season, i) |>
-          mutate(laps = parse_number(laps)) %>%
-          # filter(laps >= max(.$laps)-3) |>
+          mutate(laps = parse_number(laps)) |> 
           # Obtain an ordered vector of positions
           pull(driver_id)
       }
